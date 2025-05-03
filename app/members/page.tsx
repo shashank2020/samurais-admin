@@ -1,47 +1,27 @@
 import { DataTable } from "@/components/ui/data-table"
-import { Member, columns } from "./columns"
+import { columns } from "./columns"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { createClient } from '@/utils/supabase/client';
-
-async function getActiveMemberData(): Promise<Member[]> {
-  // Fetch data from your API here.
-  return [
-    {
-      GivenName: "Monkey D Garp",
-      EmailAddress: "m@example.com",
-      Status: "active",
-      MembershipType: "Weekly",
-      MobileNumber: "123123123"
-    },
-    {
-      GivenName: "Shanks",
-      EmailAddress: "m@example.com",
-      Status: "active",
-      MembershipType: "Monthly",
-      MobileNumber: "123123123"
-    },
-    {
-      GivenName: "Nami",
-      EmailAddress: "m@example.com",
-      Status: "active",
-      MembershipType: "Annual",
-      MobileNumber: "123123123"
-    },
-  ]
-}
+import { PostgrestResponse } from "@supabase/supabase-js"
+import { Member } from "../types/member"
 
 export default async function Page() {
-  const supabase = await createClient();  
-  const activeMemberData = await getActiveMemberData()
-  // const { data }:PostgrestResponse<Member> = await supabase
-  //       .from("member_form_submissions")
-  //       .select('*')
-  const pendingMemberData = activeMemberData//data || [];
+  const supabase = await createClient();
+
+  const { data }:PostgrestResponse<Member> = await supabase
+  .from("member_details_table")
+  .select('*')
+
+  const pendingMemberData = data?.filter(x => x.Status == 3) || [];
+  const activeMemberData = data?.filter(x => x.Status == 1) || [];  
+  
+  // TODO : MOVE SIDEBAR LAYOUT FROM ROOT 
+  
   return (
     <div className="w-screen container mx-auto">      
-      <Tabs defaultValue="Active">
+      <Tabs defaultValue="Pending">
         <div className="flex justify-between mb-4">
           <TabsList>
             <TabsTrigger value="Active">Active</TabsTrigger>
