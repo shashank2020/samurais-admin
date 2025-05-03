@@ -21,7 +21,7 @@ import { usePathname } from 'next/navigation'
 const items = [
   {
     title: "Members",
-    url: "/dashboard",
+    url: "/members",
     isActive: true,
   },
   {

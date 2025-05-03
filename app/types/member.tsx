@@ -1,0 +1,18 @@
+export type Member = {
+  Id: number,
+  GivenName: string,
+  PreferredName: string,
+  Address: string,
+  PostCode: string,
+  MobileNumber: string,
+  EmailAddress: string,
+  DateOfBirth: Date,
+  School: string,
+  MedicalInformation: string,
+  EmergencyContact1: string,
+  EmergencyContact2: String,
+  MembershipType: string,
+  GuardianName: string,
+  GuardianEmail: string,
+  Status: number,  
+}
