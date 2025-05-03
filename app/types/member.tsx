@@ -10,7 +10,7 @@ export type Member = {
   School: string,
   MedicalInformation: string,
   EmergencyContact1: string,
-  EmergencyContact2: String,
+  EmergencyContact2: string,
   MembershipType: string,
   GuardianName: string,
   GuardianEmail: string,
