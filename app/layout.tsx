@@ -3,6 +3,8 @@ import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
+import { Providers } from "./providers/providers";
+import { Toaster } from "@/components/ui/toaster";
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -27,6 +29,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={geistSans.className} suppressHydrationWarning>
       <body className="bg-background text-foreground">
+        <Providers>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -40,7 +43,9 @@ export default function RootLayout({
           {children}
         </main>
         </SidebarProvider>
+        <Toaster />
         </ThemeProvider>
+        </Providers>
       </body>
     </html>
   );

@@ -8,7 +8,7 @@ import { ArrowUpDown } from "lucide-react";
 
 interface SortButtonProps {
   title: string;
-  column: Column<any, unknown>; // or Column<Member, unknown> if Member is defined
+  column: Column<Member, unknown>; 
 }
 
 export function SortButton({ title, column }: SortButtonProps) {
