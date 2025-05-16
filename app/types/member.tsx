@@ -13,6 +13,6 @@ export type Member = {
   EmergencyContact2: string,
   MembershipType: string,
   GuardianName: string,
-  GuardianEmail: string,
+  GuardianEmailAddress: string,
   Status: number,  
 }
