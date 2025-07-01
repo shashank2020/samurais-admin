@@ -16,14 +16,12 @@ export default async function Page() {
   .order("Id", {ascending: true})
 
   const pendingMemberData = data?.filter(x => x.Status == 3) || [];
-  const activeMemberData = data?.filter(x => x.Status == 1) || [];  
-  
-  // TODO : MOVE SIDEBAR LAYOUT FROM ROOT 
+  const activeMemberData = data?.filter(x => x.Status == 1) || [];
   
   return (
     <div className="w-screen container mx-auto">      
-      <Tabs defaultValue="Pending">
-        <div className="flex justify-between mb-4">
+      <Tabs defaultValue="Active">
+        <div className="flex justify-between">
           <TabsList>
             <TabsTrigger value="Active">Active</TabsTrigger>
             <TabsTrigger value="Pending">Pending</TabsTrigger>
