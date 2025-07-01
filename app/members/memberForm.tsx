@@ -147,7 +147,6 @@ export default function MemberForm({ row }: MemberFormProps) {
         { id: row.Id, data: payload },
         {
           onSuccess: (data) => {
-            alert("")
             toast({ title: "Member Updated", description: `${data.GivenName} has been updated.` });
             router.refresh();
           },

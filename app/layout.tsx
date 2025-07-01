@@ -1,10 +1,11 @@
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarFooter, SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Providers } from "./providers/providers";
 import { Toaster } from "@/components/ui/toaster";
+import { ThemeSwitcher } from "@/components/theme-switcher";
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -42,8 +43,8 @@ export default function RootLayout({
           <SidebarTrigger />
           {children}
         </main>
-        </SidebarProvider>
-        <Toaster />
+        </SidebarProvider>                
+        <Toaster />  
         </ThemeProvider>
         </Providers>
       </body>

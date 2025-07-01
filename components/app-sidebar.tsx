@@ -25,12 +25,20 @@ const items = [
     isActive: true,
   },
   {
+    title: "Invoices",
+    url: "/invoices",
+  },
+  {
+    title: "Subscriptions",
+    url: "/subscriptions",
+  },
+  {
     title: "Payments",
     url: "/payments",
   },
   {
-    title: "Membership Management",
-    url: "/membership_management",
+    title: "Settings",
+    url: "/settings",
   },
 ]
 
