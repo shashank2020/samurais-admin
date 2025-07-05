@@ -32,6 +32,10 @@ import {
 import { useState, useEffect } from "react";
 import { memberSubscriptionTypes } from "../types/enums/memberSubscriptionTypes";
 import { DatePickerInsideDialog } from "./DatePickerInsideDialog";
+import { useCreateInvoice } from "../invoiceModulation/useCreateInvoice";
+import { InvoiceDetail } from "../types/invoiceDetail";
+import { useToast } from "@/hooks/use-toast";
+import { useRouter } from 'next/navigation';
 
 export default function NewInvoiceForm() {
   const formSchema = z.object({
@@ -40,6 +44,8 @@ export default function NewInvoiceForm() {
     periodEnd: z.date().nullable(),
   });
 
+  const { toast } = useToast();
+  const router = useRouter();
   function addDays(startDate: Date, days: number): Date {
     const result = new Date(startDate);
     result.setDate(result.getDate() + days);
@@ -91,14 +97,29 @@ export default function NewInvoiceForm() {
     setEndDate(calculatedEnd);
   }, [startDate, subscriptionType]);
 
+  const {
+      mutate: createInvoice,
+      isPending: isUpdating,
+    } = useCreateInvoice();
+
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     if (!startDate || !endDate) return alert("Please select a start date.");
 
-    const invoiceData = {
-      subscriptionType,
-      periodStart: startDate,
-      periodEnd: endDate,
-    };
+    const invoiceData: InvoiceDetail = {
+      subscriptiontype: values.subscriptionType  + 1, // Convert enum to number (1-based index)
+      startdate: startDate.toISOString(),
+      enddate: endDate.toISOString(),
+    } as InvoiceDetail;
+
+    createInvoice(invoiceData, {
+        onSuccess: () => {
+          toast({ title: "Invoice Created", description: `Invoice created successfully!` });
+          router.refresh();
+        },
+        onError: (error: any) => {
+          toast({ variant: "destructive", title: "Invoice creation failed", description: error.stack || error.message });
+        },
+      });
 
     alert("Invoice Created:" + JSON.stringify(invoiceData));
   };
