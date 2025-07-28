@@ -1,5 +1,8 @@
 export type InvoiceDetail = {
-  enddate: string;
-  startdate: string;
+  InvoiceId: number;
+  DueDate: string;
+  StartDate: string;
   subscriptiontype: number;
+  MemberSubscriptionType: string;
+  TermLabel: string
 };

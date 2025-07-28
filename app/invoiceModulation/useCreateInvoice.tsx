@@ -6,8 +6,8 @@ const createInvoice = async (invoiceDetail: InvoiceDetail): Promise<boolean> => 
   const supabase = createClient();
   console.log(typeof(invoiceDetail.subscriptiontype));
   const { data, error } = await supabase.rpc("GenerateMemberInvoice", {
-    startdate: toPostgresDate(invoiceDetail.startdate),
-    enddate: toPostgresDate(invoiceDetail.enddate),
+    startdate: toPostgresDate(invoiceDetail.StartDate),
+    enddate: toPostgresDate(invoiceDetail.DueDate),
     subscriptiontype: invoiceDetail.subscriptiontype,
   });
 
