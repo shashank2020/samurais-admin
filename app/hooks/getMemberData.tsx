@@ -8,6 +8,7 @@ export const getMemberDetailsById = async (id: number): Promise<Member | null> =
     .from("member_details_table")
     .select()
     .eq("Id", id)
+    .order("GivenName", { ascending: true })
     
     if (error) {
         console.error("Error fetching member:", error.message);

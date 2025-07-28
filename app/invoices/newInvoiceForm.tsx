@@ -36,6 +36,7 @@ import { useCreateInvoice } from "../invoiceModulation/useCreateInvoice";
 import { InvoiceDetail } from "../types/invoiceDetail";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from 'next/navigation';
+import { InvoiceMemberSelectTable } from "./invoiceMemberSelectTable";
 
 export default function NewInvoiceForm() {
   const formSchema = z.object({
@@ -107,8 +108,8 @@ export default function NewInvoiceForm() {
 
     const invoiceData: InvoiceDetail = {
       subscriptiontype: values.subscriptionType  + 1, // Convert enum to number (1-based index)
-      startdate: startDate.toISOString(),
-      enddate: endDate.toISOString(),
+      StartDate: startDate.toISOString(),
+      DueDate: endDate.toISOString(),
     } as InvoiceDetail;
 
     createInvoice(invoiceData, {
@@ -138,69 +139,68 @@ export default function NewInvoiceForm() {
           <DialogTitle></DialogTitle>
           <DialogDescription>Details</DialogDescription>
         </DialogHeader>
-        <div className="items-center space-x-2">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-              <FormField
-                control={form.control}
-                name="subscriptionType"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Membership Type</FormLabel>
-                    <FormControl>
-                      {/* <Input placeholder="Membership Type" {...field} className="w-full" /> */}
-                      <Select
-                      value={memberSubscriptionTypes[field.value]} // Convert number → string for display
-                      onValueChange={(val) => {
-                        const numericValue = memberSubscriptionTypes[val as keyof typeof memberSubscriptionTypes];
-                        field.onChange(numericValue); // Convert string → number for form
-                        setSubscriptionType(numericValue);
-                      }}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select Membership Type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.keys(memberSubscriptionTypes)
-                          .filter((key) => isNaN(Number(key))) // Only get string keys, ignore "0", "1", etc.
-                          .map((key) => (
-                            <SelectItem key={key} value={key}>
-                              {key}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <div className="flex flex-row gap-4">
-                <DatePickerInsideDialog
-                  label="Start Date"
-                  value={startDate}
-                  onChange={(date) => setStartDate(date)}
+          <div className="items-center space-x-2">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                <FormField
+                  control={form.control}
+                  name="subscriptionType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Membership Type</FormLabel>
+                      <FormControl>
+                        <Select 
+                          value={memberSubscriptionTypes[field.value]}
+                          onValueChange={(val) => {
+                            const numericValue = memberSubscriptionTypes[val as keyof typeof memberSubscriptionTypes];
+                            field.onChange(numericValue);
+                            setSubscriptionType(numericValue);
+                          }}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select Membership Type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Object.keys(memberSubscriptionTypes)
+                              .filter((key) => isNaN(Number(key)))
+                              .map((key) => (
+                                <SelectItem key={key} value={key}>
+                                  {key}
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
 
-                <DatePickerInsideDialog
-                  label="End Date"
-                  value={endDate}
-                  onChange={(date) => setEndDate(date)}
-                />
-              </div>
+                <div className="flex flex-row gap-4">
+                  <DatePickerInsideDialog
+                    label="Start Date"
+                    value={startDate}
+                    onChange={(date) => setStartDate(date)}
+                  />
 
+                  <DatePickerInsideDialog
+                    label="End Date"
+                    value={endDate}
+                    onChange={(date) => setEndDate(date)}
+                  />
+                </div>
+                <div>
+                  <InvoiceMemberSelectTable memberSubscriptionTypeSelected={subscriptionType} />
+                </div>
                 <div className="pt-2 flex flex-wrap gap-2">
-                  <Button className="min-w-[180px] flex-1">
-                    Fetch members for invoice
-                  </Button>
                   <Button type="submit" className="min-w-[180px] flex-1">
                     Create Invoice
                   </Button>
                 </div>
-            </form>
-          </Form>
-        </div>
+              </form>
+            </Form>
+          </div>
+          
         <DialogFooter>
           <DialogClose asChild></DialogClose>
         </DialogFooter>

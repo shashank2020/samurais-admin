@@ -14,7 +14,7 @@ export default async function Page() {
   .from("member_details_table")
   .select('*')
   .order("Id", {ascending: true})
-
+  console.log("Member Data: ", data);
   const pendingMemberData = data?.filter(x => x.Status == 3) || [];
   const activeMemberData = data?.filter(x => x.Status == 1) || [];
   
