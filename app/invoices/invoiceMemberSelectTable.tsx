@@ -39,9 +39,11 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Member } from "../types/member"
 import { useMembers } from "../memberModulation/useMembers"
 import { memberSubscriptionTypes } from "../types/enums/memberSubscriptionTypes"
+import { useEffect } from "react"
 
 type Props = {
-  memberSubscriptionTypeSelected: memberSubscriptionTypes
+  memberSubscriptionTypeSelected: memberSubscriptionTypes,
+  onSelectionChange: (memberIds: number[]) => void
 }
 
 export const columns: ColumnDef<Member>[] = [
@@ -137,6 +139,7 @@ export const columns: ColumnDef<Member>[] = [
 
 export function InvoiceMemberSelectTable({
   memberSubscriptionTypeSelected,
+  onSelectionChange
 }: Props) {
   const [mounted, setMounted] = React.useState(false)
   const [sorting, setSorting] = React.useState<SortingState>([])
@@ -182,13 +185,18 @@ export function InvoiceMemberSelectTable({
     },
   })
 
+  useEffect(() => {
+  const selected = table.getSelectedRowModel().rows.map(row => row.original.Id)
+  onSelectionChange(selected)
+}, [table.getSelectedRowModel().rows, onSelectionChange])
+
   if (!mounted) {
     return (
       <div className="w-full rounded-md border h-[300px]">
-        {/* your skeleton / placeholder */}
+        {/* skeleton / placeholder */}
       </div>
     )
-  }
+  } 
 
   return (
     <div className="w-full">

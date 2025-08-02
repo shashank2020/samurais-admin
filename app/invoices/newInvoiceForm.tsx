@@ -37,6 +37,7 @@ import { InvoiceDetail } from "../types/invoiceDetail";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from 'next/navigation';
 import { InvoiceMemberSelectTable } from "./invoiceMemberSelectTable";
+import { Member } from "../types/member";
 
 export default function NewInvoiceForm() {
   const formSchema = z.object({
@@ -74,6 +75,8 @@ export default function NewInvoiceForm() {
     useState<memberSubscriptionTypes>(memberSubscriptionTypes.Casual);
   const [startDate, setStartDate] = useState<Date>(new Date());
   const [endDate, setEndDate] = useState<Date>(new Date());
+  const [selectedMemberIds, setSelectedMemberIds] = useState<number[]>([])
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     if (!startDate) return;
@@ -104,17 +107,23 @@ export default function NewInvoiceForm() {
     } = useCreateInvoice();
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    if (!startDate || !endDate) return alert("Please select a start date.");
-
+    if (!startDate || !endDate) return alert("Please select a start and end date.");
+    if (selectedMemberIds.length === 0) return alert("No members selected.");
+    if (startDate > endDate) {
+      return alert("Start date cannot be after end date.");
+    }
+    
     const invoiceData: InvoiceDetail = {
       subscriptiontype: values.subscriptionType  + 1, // Convert enum to number (1-based index)
       StartDate: startDate.toISOString(),
       DueDate: endDate.toISOString(),
+      MemberIds: selectedMemberIds,
     } as InvoiceDetail;
 
     createInvoice(invoiceData, {
         onSuccess: () => {
           toast({ title: "Invoice Created", description: `Invoice created successfully!` });
+          setOpen(false);
           router.refresh();
         },
         onError: (error: any) => {
@@ -126,7 +135,7 @@ export default function NewInvoiceForm() {
   };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>
           <Plus />
@@ -190,10 +199,10 @@ export default function NewInvoiceForm() {
                   />
                 </div>
                 <div>
-                  <InvoiceMemberSelectTable memberSubscriptionTypeSelected={subscriptionType} />
+                  <InvoiceMemberSelectTable memberSubscriptionTypeSelected={subscriptionType} onSelectionChange={setSelectedMemberIds}/>
                 </div>
                 <div className="pt-2 flex flex-wrap gap-2">
-                  <Button type="submit" className="min-w-[180px] flex-1">
+                  <Button type="submit" className="min-w-[180px] flex-1" disabled={isUpdating || selectedMemberIds.length === 0}>
                     Create Invoice
                   </Button>
                 </div>

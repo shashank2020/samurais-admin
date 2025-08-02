@@ -4,5 +4,6 @@ export type InvoiceDetail = {
   StartDate: string;
   subscriptiontype: number;
   MemberSubscriptionType: string;
-  TermLabel: string
+  TermLabel: string;
+  MemberIds: number[];
 };
