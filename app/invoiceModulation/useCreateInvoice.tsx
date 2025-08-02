@@ -9,6 +9,7 @@ const createInvoice = async (invoiceDetail: InvoiceDetail): Promise<boolean> => 
     startdate: toPostgresDate(invoiceDetail.StartDate),
     enddate: toPostgresDate(invoiceDetail.DueDate),
     subscriptiontype: invoiceDetail.subscriptiontype,
+    memberids: invoiceDetail.MemberIds,
   });
 
   if (error) {
