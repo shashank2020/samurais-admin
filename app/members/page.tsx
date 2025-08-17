@@ -23,9 +23,9 @@ export default async function Page() {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarTrigger />
-      <SidebarInset>      
-      <div className="w-screen container mx-auto">      
+      {/* <SidebarTrigger /> */}
+      {/* <SidebarInset>       */}
+      <div className="container mx-auto px-4">      
         <Tabs defaultValue="Active">
           <div className="flex justify-between">
             <TabsList>
@@ -44,7 +44,7 @@ export default async function Page() {
           </TabsContent>
         </Tabs>      
       </div>
-      </SidebarInset>
+      
     </SidebarProvider>
   )
 }

@@ -38,16 +38,16 @@ const items = [
     title: "Invoices",
     url: "/invoices",
   },
+  // {
+  //   title: "Subscriptions",
+  //   url: "/subscriptions",
+  // },
+  // {
+  //   title: "Payments",
+  //   url: "/payments",
+  // },
   {
-    title: "Subscriptions",
-    url: "/subscriptions",
-  },
-  {
-    title: "Payments",
-    url: "/payments",
-  },
-  {
-    title: "Settings",
+    title: "Club Settings",
     url: "/settings",
   },
 ]

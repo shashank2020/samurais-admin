@@ -79,9 +79,9 @@ const markUserAsPaid = (memberInvoiceId: number) => {
             <div className="space-y-4">
               <div className="flex justify-end gap-2">
                 <InvoiceEmailForm members={invoiceWithMemberDetail.memberDetails} invoiceId={invoiceWithMemberDetail.invoice.InvoiceId} />
-                <Button size="sm" variant="secondary">
+                {/* <Button size="sm" variant="secondary">
                   Assign Members <Plus />
-                </Button>
+                </Button> */}
                 <Button size="sm" variant="secondary" onClick={handleDownload}>
                   Download <Download />
                 </Button>
