@@ -73,6 +73,62 @@
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
+
+  /* globals.css */
+
+.light {
+  /* Base page colors */
+  --background: 0 0% 98%;            /* almost-white */
+  --foreground: 220 15% 15%;         /* dark navy-gray */
+
+  /* Card & popover surfaces */
+  --card: var(--background);
+  --card-foreground: var(--foreground);
+  --popover: var(--background);
+  --popover-foreground: var(--foreground);
+
+  /* Primary & secondary accents */
+  --primary: 220 70% 50%;             /* vibrant mid-blue */
+  --primary-foreground: 0 0% 100%;    /* white text on buttons */
+  --secondary: 220 20% 90%;           /* very pale blue */
+  --secondary-foreground: 220 15% 15%;
+
+  /* Muted / disabled UI */
+  --muted: 210 30% 90%;               /* light gray-blue */
+  --muted-foreground: 210 10% 50%;
+
+  /* Highlights & accents */
+  --accent: 200 80% 85%;              /* soft sky-blue */
+  --accent-foreground: 220 15% 15%;
+
+  /* Destructive (danger) */
+  --destructive: 0 75% 65%;           /* light red */
+  --destructive-foreground: 0 0% 100%;
+
+  /* Borders, inputs & rings */
+  --border: 210 20% 85%;
+  --input: 210 20% 85%;
+  --ring: 220 70% 60%;
+
+  /* Chart palette (same hues but lighter) */
+  --chart-1: 220 70% 60%;
+  --chart-2: 160 60% 55%;
+  --chart-3: 30 80% 65%;
+  --chart-4: 280 65% 65%;
+  --chart-5: 340 75% 65%;
+
+  /* Sidebar (light background with dark text) */
+  --sidebar-background: 0 0% 98%;
+  --sidebar-foreground: 220 15% 15%;
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: 200 80% 90%;
+  --sidebar-accent-foreground: var(--secondary-foreground);
+  --sidebar-border: 210 20% 85%;
+  --sidebar-ring: var(--ring);
+}
+
+  
 }
 
 @layer base {

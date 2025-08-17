@@ -3,49 +3,83 @@ import ExpandableInvoiceCard from "./expandableInvoiceCard";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import NewInvoiceForm from "./newInvoiceForm";
-import { InvoiceDetail } from "../types/invoiceDetail";
+import { InvoiceDetail, InvoiceWithMemberDetails, MemberInvoiceDetail } from "../types/invoiceDetail";
 import { createClient } from '@/utils/supabase/client';
 import { PostgrestResponse } from "@supabase/supabase-js"
+import { useMembers } from "../memberModulation/useMembers";
+import { Member } from "../types/member";
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
 
 export default async function Page() {
   const supabase = await createClient();
 
-    const { data }:PostgrestResponse<InvoiceDetail> = await supabase
+    const { data: invoiceData }:PostgrestResponse<InvoiceDetail> = await supabase
     .from("invoices")
     .select('*')
     .order("InvoiceId", {ascending: false})
-    
-    const allInvoiceDetail = data || [];
-    const annualInvoiceDetail = data?.filter(x => x.MemberSubscriptionType === "Annual") || [];
-    const monthlyInvoiceDetail = data?.filter(x => x.MemberSubscriptionType === "Monthly") || [];
-    const casualInvoiceDetail = data?.filter(x => x.MemberSubscriptionType === "Casual") || [];
 
+    const { data: memberInvoiceData }:PostgrestResponse<MemberInvoiceDetail> = await supabase
+    .from("member_invoice_details")
+    .select('*') 
+
+    const { data: memberData }:PostgrestResponse<Member> = await supabase
+    .from("member_details_table")
+    .select("*")
+    .eq("Status", 1)
+
+    // Combine invoiceData, memberInvoiceData, and memberData into invoiceWithMemberDetails arrays
+    function getInvoiceWithMemberDetails(type?: string) {
+      if (!invoiceData || !memberInvoiceData || !memberData) return [];
+      return invoiceData
+        .filter(inv => !type || inv.MemberSubscriptionType === type)
+        .map(inv => {
+          // Find all members whose Id is in inv.MemberIds array
+          const members = memberData.filter(m => memberInvoiceData.some(mInv => mInv.MemberId === m.Id && mInv.InvoiceId === inv.InvoiceId));
+          return {
+            invoice: inv,
+            memberDetails: members,
+            MemberInvoiceDetails: memberInvoiceData.filter(mInv => mInv.InvoiceId === inv.InvoiceId)
+          } as InvoiceWithMemberDetails;
+        });
+    }
+
+    const allInvoiceMemberDetails = getInvoiceWithMemberDetails();
+    const casualInvoiceMemberDetails = getInvoiceWithMemberDetails("Casual");
+    const annualInvoiceMemberDetails = getInvoiceWithMemberDetails("Annual");
+    const monthlyInvoiceMemberDetails = getInvoiceWithMemberDetails("Monthly");
 
   return (
-    <div className="w-screen container mx-auto">
-      <Tabs defaultValue="All">
-        <div className="flex justify-between mb-4">
-          <TabsList>
-            <TabsTrigger value="All">All</TabsTrigger>
-            <TabsTrigger value="Annual">Annual</TabsTrigger>
-            <TabsTrigger value="Monthly">Monthly</TabsTrigger>
-            <TabsTrigger value="Casual">Casual</TabsTrigger>
-          </TabsList>
-          <NewInvoiceForm/>
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <SidebarTrigger />
+        <div className="w-screen container mx-auto">
+          <Tabs defaultValue="All">
+            <div className="flex justify-between mb-4">
+              <TabsList>
+                <TabsTrigger value="All">All</TabsTrigger>
+                <TabsTrigger value="Annual">Annual</TabsTrigger>
+                <TabsTrigger value="Monthly">Monthly</TabsTrigger>
+                <TabsTrigger value="Casual">Casual</TabsTrigger>
+              </TabsList>
+              <NewInvoiceForm/>
+            </div>
+            <TabsContent value="All">
+              <ExpandableInvoiceCard invoiceWithMemberDetails={allInvoiceMemberDetails}/>
+            </TabsContent>        
+            <TabsContent value="Casual">
+              <ExpandableInvoiceCard invoiceWithMemberDetails={casualInvoiceMemberDetails}/>
+            </TabsContent>
+            <TabsContent value="Annual">
+              <ExpandableInvoiceCard invoiceWithMemberDetails={annualInvoiceMemberDetails}/>
+            </TabsContent>
+            <TabsContent value="Monthly">
+              <ExpandableInvoiceCard invoiceWithMemberDetails={monthlyInvoiceMemberDetails}/>
+            </TabsContent>
+          </Tabs>
         </div>
-        <TabsContent value="All">
-          <ExpandableInvoiceCard invoiceDetails={allInvoiceDetail} memberInvoiceDetails={null}/>
-        </TabsContent>        
-        <TabsContent value="Casual">
-          <ExpandableInvoiceCard invoiceDetails={casualInvoiceDetail} memberInvoiceDetails={null}/>
-        </TabsContent>
-        <TabsContent value="Annual">
-          <ExpandableInvoiceCard invoiceDetails={annualInvoiceDetail} memberInvoiceDetails={null}/>
-        </TabsContent>
-        <TabsContent value="Monthly">
-          <ExpandableInvoiceCard invoiceDetails={monthlyInvoiceDetail} memberInvoiceDetails={null}/>
-        </TabsContent>
-      </Tabs>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

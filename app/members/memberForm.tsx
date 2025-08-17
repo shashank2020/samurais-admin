@@ -163,7 +163,7 @@ export default function MemberForm({ row }: MemberFormProps) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <a className="text-blue-200 underline cursor-pointer">
+        <a className="text-primary underline cursor-pointer">
           {row.Status === MemberStatus.Pending ? "Review details" : "View details"}
         </a>
       </DialogTrigger>

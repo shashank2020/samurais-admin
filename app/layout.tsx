@@ -1,8 +1,6 @@
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
-import { SidebarFooter, SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/app-sidebar";
 import { Providers } from "./providers/providers";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeSwitcher } from "@/components/theme-switcher";
@@ -13,8 +11,11 @@ const defaultUrl = process.env.VERCEL_URL
 
 export const metadata = {
   metadataBase: new URL(defaultUrl),
-  title: "Next.js and Supabase Starter Kit",
-  description: "The fastest way to build apps with Next.js and Supabase",
+  title: "Samurais Admin",
+  description: "Admin dashboard for managing samurai resources",
+  icons: {
+    icon: [{ url: "/samuraisicon.png", href: "/samuraisicon.png" }],
+  },
 };
 
 const geistSans = Geist({
@@ -24,29 +25,27 @@ const geistSans = Geist({
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html lang="en" className={geistSans.className} suppressHydrationWarning>
-      <body className="bg-background text-foreground">
-        <Providers>
+    <html lang="en" suppressHydrationWarning>
+      <head />
+      <body className={`${geistSans.className} bg-background text-foreground`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange
         >
-        <SidebarProvider>
-        <AppSidebar />
-        <main>
-          <SidebarTrigger />
-          {children}
-        </main>
-        </SidebarProvider>                
-        <Toaster />  
+          <Providers>
+            <ThemeSwitcher />
+            <main className="flex items-center justify-center min-h-screen w-full">
+              {children}
+            </main>
+            <Toaster />
+          </Providers>
         </ThemeProvider>
-        </Providers>
       </body>
     </html>
   );

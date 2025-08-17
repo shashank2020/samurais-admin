@@ -50,10 +50,11 @@ export const signInAction = async (formData: FormData) => {
   });
 
   if (error) {
+    console.log(error.code + " " + error.message + " " + error );
     return encodedRedirect("error", "/sign-in", error.message);
   }
 
-  return redirect("pages/members");
+  return redirect("/members");
 };
 
 export const forgotPasswordAction = async (formData: FormData) => {
