@@ -9,7 +9,7 @@ Font.register({
 })
 
 export const InvoicePDF = ({ invoice }: { invoice: any }) => {
-  // calculate subtotal
+  //calculate subtotal
   const subtotal = invoice.items.reduce((acc: number, item: any) => acc + item.amount, 0)
 
   return (
