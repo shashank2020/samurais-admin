@@ -51,6 +51,8 @@ export default function ClubSettingsPage() {
 
       if (clubSettings) setSettings(clubSettings);
       if (subs) setSubscriptions(subs);
+      console.log("Fetched club settings:", clubSettings);
+      console.log("Fetched subscriptions:", subs);
     };
 
     fetchData();
@@ -87,7 +89,7 @@ export default function ClubSettingsPage() {
   return (
     <SidebarProvider>
       <AppSidebar />
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto space-y-6">
       {/* Club Info */}
       <Card>
         <CardHeader>
@@ -168,8 +170,9 @@ export default function ClubSettingsPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           {subscriptions.map((sub, idx) => (
-            <div key={sub.id} className="grid grid-cols-3 gap-4">
+            <div key={sub.Id} className="grid grid-cols-3 gap-4">
               <Input
+                name = {`MembershipType${sub.Id}`}
                 placeholder="Name (e.g. Monthly)"
                 value={sub.MembershipType}
                 onChange={(e) => {
@@ -179,6 +182,7 @@ export default function ClubSettingsPage() {
                 }}
               />
               <Input
+                name = {`Rate${sub.Id}`}
                 type="number"
                 placeholder="Rate"
                 value={sub.rate}
@@ -189,6 +193,7 @@ export default function ClubSettingsPage() {
                 }}
               />
               <Input
+                name = {`SubsidisedRate${sub.Id}`}
                 type="number"
                 placeholder="Subsidised Rate"
                 value={sub.subsidised_rate || ""}

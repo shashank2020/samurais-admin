@@ -14,6 +14,7 @@ import InvoiceEmailForm from "./invoiceEmailForm";
 import { useMarkMemberInvoiceAsPaid } from "../invoiceModulation/useMarkMemberInvoiceAsPaid";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import { CircleCheck, CircleDashed } from 'lucide-react';
 
 type ExpandableInvoiceCardProps = {invoiceWithMemberDetails: InvoiceWithMemberDetails[] };
 
@@ -101,8 +102,13 @@ const markUserAsPaid = (memberInvoiceId: number) => {
                     }}>
                       {invoiceWithMemberDetail.MemberInvoiceDetails?.some(mInv => mInv.MemberId === member.Id && mInv.IsPaid) ? 'Paid' : 'Mark as Paid'}
                     </Button>
-                    <Badge variant={invoiceWithMemberDetail.MemberInvoiceDetails?.some(mInv => mInv.MemberId === member.Id && mInv.IsNotified) ? "secondary" : "destructive"} className={invoiceWithMemberDetail.MemberInvoiceDetails?.some(mInv => mInv.MemberId === member.Id && mInv.IsNotified) ? "bg-blue-500 text-white dark:bg-green-600" : ""}>
-                      {invoiceWithMemberDetail.MemberInvoiceDetails?.some(mInv => mInv.MemberId === member.Id && mInv.IsNotified) ? "Invoice sent" : "Not sent"}
+                    <Badge variant={invoiceWithMemberDetail.MemberInvoiceDetails?.some(mInv => mInv.MemberId === member.Id && mInv.IsNotified) ? "secondary" : "destructive"}>
+                      {invoiceWithMemberDetail.MemberInvoiceDetails?.some(mInv => mInv.MemberId === member.Id && mInv.IsNotified) ? (
+                        <div className="flex items-center gap-2"><CircleCheck size={18} className="fill-green-500 dark:fill-green-800" /> <span>sent</span></div>
+                      ) : (
+                        <div className="flex items-center gap-2"><CircleDashed size={18}/> <span>Not sent</span></div>
+                      )
+                      }
                     </Badge>
                   </div>
                 </div>

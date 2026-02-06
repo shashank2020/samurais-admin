@@ -46,7 +46,6 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const { subject, body, recipient } = await req.json()
 
     // Sample invoice data
     const sampleInvoice = {

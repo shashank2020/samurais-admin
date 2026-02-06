@@ -38,9 +38,8 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Providers>
-            <ThemeSwitcher />
-            <main className="flex items-center justify-center min-h-screen w-full">
+          <Providers>            
+            <main className="flex items-center justify-center min-h-screen w-full pt-10">
               {children}
             </main>
             <Toaster />

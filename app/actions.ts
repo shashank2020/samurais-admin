@@ -116,7 +116,7 @@ export const resetPasswordAction = async (formData: FormData) => {
   const { error } = await supabase.auth.updateUser({
     password: password,
   });
-
+  debugger;
   if (error) {
     encodedRedirect(
       "error",

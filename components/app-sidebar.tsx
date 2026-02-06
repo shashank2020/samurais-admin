@@ -19,6 +19,7 @@ import {
 import { usePathname } from 'next/navigation'
 import { NavUser } from "./nav-user"
 import { useEffect, useState } from "react"
+import { ThemeSwitcher } from "./theme-switcher";
 
 // This is sample data.
 const data = {
@@ -30,22 +31,18 @@ const data = {
 }
 const items = [
   {
-    title: "Members",
-    url: "/members",
+    title: "Dashboard",
+    url: "/dashboard",
     isActive: true,
+  },
+  {
+    title: "Members",
+    url: "/members"
   },
   {
     title: "Invoices",
     url: "/invoices",
   },
-  // {
-  //   title: "Subscriptions",
-  //   url: "/subscriptions",
-  // },
-  // {
-  //   title: "Payments",
-  //   url: "/payments",
-  // },
   {
     title: "Club Settings",
     url: "/settings",
@@ -87,6 +84,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <ThemeSwitcher />
     </Sidebar>
     
   )

@@ -1,14 +1,11 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import ExpandableInvoiceCard from "./expandableInvoiceCard";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
 import NewInvoiceForm from "./newInvoiceForm";
 import { InvoiceDetail, InvoiceWithMemberDetails, MemberInvoiceDetail } from "../types/invoiceDetail";
 import { createClient } from '@/utils/supabase/client';
 import { PostgrestResponse } from "@supabase/supabase-js"
-import { useMembers } from "../memberModulation/useMembers";
 import { Member } from "../types/member";
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 
 export default async function Page() {
