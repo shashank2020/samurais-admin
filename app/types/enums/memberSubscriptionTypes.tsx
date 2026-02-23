@@ -1,6 +1,6 @@
 export enum memberSubscriptionTypes {
   Casual,
-  Weekly,
   Monthly,
+  SemiAnnual,
   Annual
 }

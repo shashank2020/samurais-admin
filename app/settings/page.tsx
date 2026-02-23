@@ -10,49 +10,31 @@ import { Plus, Save } from "lucide-react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { useToast } from "@/hooks/use-toast";
-
-type ClubSettings = {
-  id: string;
-  club_name: string;
-  gst_number: string;
-  address: string;
-  email: string;
-  phone: string;
-  bank_account: string;
-};
-
-type SubscriptionType = {
-  id: string;
-  MembershipType: string;
-  rate: number;
-  subsidised_rate: number | null;
-};
+import { PostgrestResponse, PostgrestSingleResponse } from "@supabase/supabase-js";
 
 export default function ClubSettingsPage() {
   const supabase = createClient();
 
-  const [settings, setSettings] = useState<ClubSettings | null>(null);
-  const [subscriptions, setSubscriptions] = useState<SubscriptionType[]>([]);
+  const [settings, setSettings] = useState<ClubSetting | null>(null);
+  const [subscriptions, setSubscriptions] = useState<SubscriptionRates[]>([]);
 
   const { toast } = useToast();
   
   // Fetch data
   useEffect(() => {
     const fetchData = async () => {
-      const { data: clubSettings } = await supabase
+      const { data: clubSettings }: PostgrestSingleResponse<ClubSetting> = await supabase
         .from("club_settings")
         .select("*")
         .single();
 
-      const { data: subs } = await supabase
+      const { data: subs }: PostgrestResponse<SubscriptionRates> = await supabase
         .from("member_subscription_types")
         .select("*")
-        .order("MembershipType");
+        .order("Id");
 
       if (clubSettings) setSettings(clubSettings);
       if (subs) setSubscriptions(subs);
-      console.log("Fetched club settings:", clubSettings);
-      console.log("Fetched subscriptions:", subs);
     };
 
     fetchData();
@@ -61,7 +43,7 @@ export default function ClubSettingsPage() {
   // Update club settings
   const saveClubSettings = async () => {
     if (!settings) return;
-    await supabase.from("club_settings").upsert(settings);
+    await supabase.from("club_settings").update(settings).eq("id", settings.id);
     toast({
       title: "Settings saved",
       description: "Your club settings have been updated successfully.",
@@ -70,6 +52,7 @@ export default function ClubSettingsPage() {
 
   // Update subscriptions
   const saveSubscriptions = async () => {
+    debugger;
     for (let sub of subscriptions) {
       await supabase.from("member_subscription_types").upsert(sub);
     }
@@ -79,17 +62,10 @@ export default function ClubSettingsPage() {
     });
   };
 
-  const addSubscription = () => {
-    setSubscriptions([
-      ...subscriptions,
-      { id: crypto.randomUUID(), MembershipType: "", rate: 0, subsidised_rate: null },
-    ]);
-  };
-
   return (
     <SidebarProvider>
       <AppSidebar />
-    <div className="container mx-auto space-y-6">
+    <div className="container mx-auto space-y-6 py-10">
       {/* Club Info */}
       <Card>
         <CardHeader>
@@ -108,7 +84,7 @@ export default function ClubSettingsPage() {
                 />
               </div>
               <div>
-                <Label>GST Number</Label>
+                <Label>GST number</Label>
                 <Input
                   value={settings.gst_number || ""}
                   onChange={(e) =>
@@ -117,11 +93,20 @@ export default function ClubSettingsPage() {
                 />
               </div>
               <div>
-                <Label>Address</Label>
+                <Label>Street address</Label>
                 <Input
-                  value={settings.address || ""}
+                  value={settings.address_line_1 || ""}
                   onChange={(e) =>
-                    setSettings({ ...settings, address: e.target.value })
+                    setSettings({ ...settings, address_line_1: e.target.value })
+                  }
+                />
+              </div>
+              <div>
+                <Label>City</Label>
+                <Input
+                  value={settings.address_line_2 || ""}
+                  onChange={(e) =>
+                    setSettings({ ...settings, address_line_2: e.target.value })
                   }
                 />
               </div>
@@ -144,7 +129,7 @@ export default function ClubSettingsPage() {
                 />
               </div>
               <div>
-                <Label>Bank Account</Label>
+                <Label>Bank account</Label>
                 <Input
                   value={settings.bank_account || ""}
                   onChange={(e) =>
@@ -189,19 +174,6 @@ export default function ClubSettingsPage() {
                 onChange={(e) => {
                   const copy = [...subscriptions];
                   copy[idx].rate = parseFloat(e.target.value);
-                  setSubscriptions(copy);
-                }}
-              />
-              <Input
-                name = {`SubsidisedRate${sub.Id}`}
-                type="number"
-                placeholder="Subsidised Rate"
-                value={sub.subsidised_rate || ""}
-                onChange={(e) => {
-                  const copy = [...subscriptions];
-                  copy[idx].subsidised_rate = e.target.value
-                    ? parseFloat(e.target.value)
-                    : null;
                   setSubscriptions(copy);
                 }}
               />

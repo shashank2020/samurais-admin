@@ -6,7 +6,7 @@ import {
 } from "@/components/ui/card"
 import { UsersRound, UserRoundPen, Receipt, TriangleAlert } from 'lucide-react';
 
-export function SectionCards() {
+export function SectionCards({activeMembers = 0, pendingMembers = 0, invoicesDue = 0, paymentsDue = 0}) {
   return (
     <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card flex flex-wrap gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6">
       <Card className="@container/card flex-1 min-w-[250px]">
@@ -16,7 +16,7 @@ export function SectionCards() {
             Active members
           </CardTitle>
           <label className="text-2xl tabular-nums @[250px]/card:text-3xl">
-            12
+            {activeMembers}
           </label>
         </CardHeader>
       </Card>
@@ -27,7 +27,7 @@ export function SectionCards() {
             Pending members
           </CardTitle>
           <label className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            3
+            {pendingMembers}
           </label>
         </CardHeader>
       </Card>
@@ -38,7 +38,7 @@ export function SectionCards() {
             Invoices due
           </CardTitle>
           <label className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            4
+            {invoicesDue}
           </label>
         </CardHeader>
       </Card>
@@ -49,7 +49,7 @@ export function SectionCards() {
             Member payments due
           </CardTitle>
           <label className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            9
+            {paymentsDue}
           </label>
         </CardHeader>
       </Card>

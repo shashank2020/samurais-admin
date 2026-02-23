@@ -54,7 +54,7 @@ export const signInAction = async (formData: FormData) => {
     return encodedRedirect("error", "/sign-in", error.message);
   }
 
-  return redirect("/members");
+  return redirect("/dashboard");
 };
 
 export const forgotPasswordAction = async (formData: FormData) => {
@@ -112,11 +112,11 @@ export const resetPasswordAction = async (formData: FormData) => {
       "Passwords do not match",
     );
   }
-
+  
   const { error } = await supabase.auth.updateUser({
     password: password,
   });
-  debugger;
+  console.log("resetPasswordAction error", error);
   if (error) {
     encodedRedirect(
       "error",

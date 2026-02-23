@@ -1,4 +1,10 @@
+import { memberSubscriptionTypes } from '@/app/types/enums/memberSubscriptionTypes'
+import { InvoiceDetail } from '@/app/types/invoiceDetail'
+import { periodKeyToTermText } from '@/utils/helpers/periodKeyHelper'
+import { subscriptionTypeFromString } from '@/utils/helpers/subscriptionTypeHelper'
+import { createClient } from '@/utils/supabase/server'
 import { Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer'
+import { PostgrestSingleResponse } from '@supabase/supabase-js'
 
 // Optional: register a font (using standard fonts here)
 Font.register({
@@ -8,22 +14,70 @@ Font.register({
   ],
 })
 
-export const InvoicePDF = ({ invoice }: { invoice: any }) => {
+export const InvoicePDF = async ({ invoiceId }: { invoiceId: number }) => {
+
+  const supabase = await createClient()
+  //fetch club data and invoice data to generate the invoice data object for the PDF
+  const { data: clubSettings }:PostgrestSingleResponse<ClubSetting> = await supabase
+      .from("club_settings")
+      .select("*")
+      .single();
+
+  const { data: invoiceData }:PostgrestSingleResponse<InvoiceDetail> = await supabase
+    .from("invoices")
+    .select('*')
+    .eq("InvoiceId", invoiceId)
+    .single()
+  
+  const { data: subs }:PostgrestSingleResponse<SubscriptionRates> = await supabase
+  .from("member_subscription_types")
+  .select("*")
+  .eq("MembershipType", invoiceData?.MemberSubscriptionType)
+  .single()
+
+  // Format date to dd/MM/yyyy
+  function formatDateToDDMMYYYY(dateString?: string) {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString;
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+  const term = periodKeyToTermText(invoiceData?.PeriodKey || '', subscriptionTypeFromString(invoiceData?.MemberSubscriptionType || ''), invoiceData?.StartDate ? new Date(invoiceData.StartDate) : undefined)
+  // Sample invoice data
+  const InvoicePdfData = {
+    invoiceId: invoiceId,
+    term: term,
+    date: formatDateToDDMMYYYY(invoiceData?.StartDate),
+    subtotalDisplay: `$${subs?.rate}`,
+    totalDisplay: `$${subs?.rate}`,
+    items: [
+      {
+        quantity: `1 x ${invoiceData?.MemberSubscriptionType} Membership`,
+        description:
+          `${invoiceData?.MemberSubscriptionType} Membership Subscription (${term})`,
+        unitPrice: `$${subs?.rate}`,
+      },
+    ],
+  }
+      
   //calculate subtotal
-  const subtotal = invoice.items.reduce((acc: number, item: any) => acc + item.amount, 0)
+  const subtotal = InvoicePdfData.items.reduce((acc: number, item: any) => acc + parseFloat(item.unitPrice.replace('$', '')), 0)
 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.headerRow}>
-          <Text style={styles.headerLeft}>Samurais Volleyball Inc. 142-899-558</Text>
+          <Text style={styles.headerLeft}>{clubSettings?.club_name} Inc. {clubSettings?.gst_number}</Text>
           <View style={styles.headerRight}>
-            <Text style={styles.companyName}>Samurais Volleyball</Text>
-            <Text>13 Kopiko Way, Brooklyn</Text>
-            <Text>Wellington  6021</Text>
-            <Text>samuraisvolleyball@gmail.com</Text>
-            <Text>021 268 5727</Text>
+            <Text style={styles.companyName}>{clubSettings?.club_name}</Text>
+            <Text>{clubSettings?.address_line_1}</Text>
+            <Text>{clubSettings?.address_line_2}</Text>
+            <Text>{clubSettings?.email}</Text>
+            <Text>{clubSettings?.phone}</Text>
           </View>
         </View>
 
@@ -35,10 +89,10 @@ export const InvoicePDF = ({ invoice }: { invoice: any }) => {
         <View style={styles.invoiceTermsRow}>
           <View style={styles.invoiceTermsLeft}>
             <Text style={styles.labelBold}>Invoice Term:</Text>
-            <Text style={styles.termValue}>{invoice.term}</Text>
+            <Text style={styles.termValue}>{InvoicePdfData.term}</Text>
 
             <Text style={[styles.labelBold, { marginTop: 10 }]}>Date:</Text>
-            <Text>{invoice.date}</Text>
+            <Text>{InvoicePdfData.date}</Text>
           </View>
           <View style={{ flex: 1 }} />
         </View>
@@ -55,7 +109,7 @@ export const InvoicePDF = ({ invoice }: { invoice: any }) => {
           </View>
 
           {/* Table Items */}
-          {invoice.items.map((item: any, idx: number) => (
+          {InvoicePdfData.items.map((item: any, idx: number) => (
             <View key={idx} style={[styles.tableRow]}>
               <Text style={[styles.tableCell, styles.quantityCell]}>{item.quantity}</Text>
               <Text style={[styles.tableCell, styles.descriptionCell]}>{item.description}</Text>
@@ -76,14 +130,14 @@ export const InvoicePDF = ({ invoice }: { invoice: any }) => {
           <View style={[styles.tableRow, styles.tableFooter]}>
             <Text style={[styles.tableCell, styles.quantityCell]}></Text>
             <Text style={[styles.tableCell, styles.descriptionCell, { textAlign: 'left' }]}>Subtotal</Text>
-            <Text style={[styles.tableCell, styles.unitPriceCell]}>{`— ${invoice.subtotalDisplay}`}</Text>
+            <Text style={[styles.tableCell, styles.unitPriceCell]}>{`— ${InvoicePdfData.subtotalDisplay}`}</Text>
           </View>
 
           {/* Total */}
           <View style={[styles.tableRow, styles.tableFooter]}>
             <Text style={[styles.tableCell, styles.quantityCell]}></Text>
             <Text style={[styles.tableCell, styles.descriptionCell, styles.totalLabel]}>Total:</Text>
-            <Text style={[styles.tableCell, styles.unitPriceCell, styles.totalValue]}>{invoice.totalDisplay}</Text>
+            <Text style={[styles.tableCell, styles.unitPriceCell, styles.totalValue]}>{InvoicePdfData.totalDisplay}</Text>
           </View>
         </View>
 
@@ -91,7 +145,7 @@ export const InvoicePDF = ({ invoice }: { invoice: any }) => {
         <Text style={styles.footerNote}>
           Please pay the amount to the bank account number below:
         </Text>
-        <Text style={styles.footerNoteBold}>{invoice.bankAccount}</Text>
+        <Text style={styles.footerNoteBold}>{clubSettings?.bank_account}</Text>
       </Page>
     </Document>
   )

@@ -1,4 +1,3 @@
-// useActivateMember.ts
 import { useMutation } from "@tanstack/react-query";
 import { createClient } from "@/utils/supabase/client";
 import { Member } from "../types/member";
@@ -8,7 +7,7 @@ const markMemberInvoiceAsPaid = async (memberInvoiceId: number): Promise<Boolean
   const supabase = createClient();
   const { data, error } = await supabase
     .from("member_invoice_details")
-    .update({ IsPaid: true })
+    .update({ IsPaid: true, DatePaid: new Date() })
     .eq("MemberInvoiceId", memberInvoiceId)
     .select();
 

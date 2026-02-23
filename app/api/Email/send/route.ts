@@ -2,14 +2,15 @@ import { NextResponse } from 'next/server'
 import nodemailer from 'nodemailer'
 import fs from 'fs'
 import path from 'path'
+import { createClient } from '@/utils/supabase/server'
 
 async function sendEmailWithAttachment(pdfBuffer: Buffer, subject: string, body: string, recipient: string[]) {
   // Create a transporter
   const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-      user: "shashankmylarapu@gmail.com", // your email address
-      pass: "gnbx oufx czej qlse", // your email password or app password
+      user: process.env.NEXT_PUBLIC_SENDER_EMAIL, // your email address
+      pass: process.env.NEXT_PUBLIC_SENDER_EMAIL_PASSWORD, // your email password or app password
     },
     tls: {
       rejectUnauthorized: false, // Disable certificate validation (only for dev purposes)
@@ -17,7 +18,7 @@ async function sendEmailWithAttachment(pdfBuffer: Buffer, subject: string, body:
   })
 
   const mailOptions = {
-    from: "shashankmylarapu@gmail.com",
+    from: process.env.NEXT_PUBLIC_SENDER_EMAIL,
     to: recipient,
     subject: subject,
     text: body,
@@ -41,17 +42,23 @@ async function sendEmailWithAttachment(pdfBuffer: Buffer, subject: string, body:
 
 export async function POST(req: Request) {
   try {
+    const supabase = await createClient()
     const { subject, body, recipient, pdfUrl } = await req.json()
 
-    // Read the PDF file from the public folder
-    const filePath = path.join(process.cwd(), 'public', pdfUrl)
-    const pdfBuffer = fs.readFileSync(filePath)
+    const { data, error } = await supabase.storage.from("Samurais Files").download(pdfUrl);
+    
+    if (error) {
+    throw new Error('Error downloading PDF from Supabase Storage: ' + error.message);
+    }
+
+    const buffer = Buffer.from(await data.arrayBuffer());
 
     // Send the email with the PDF attached
-    await sendEmailWithAttachment(pdfBuffer, subject, body, recipient)
+    await sendEmailWithAttachment(buffer, subject, body, recipient)
 
     return new NextResponse('Email sent with invoice PDF attachment', { status: 200 })
   } catch (error) {
-    return new NextResponse('Error sending email', { status: 500 })
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    return new NextResponse('Error sending email: ' + errorMessage, { status: 500 })
   }
 }

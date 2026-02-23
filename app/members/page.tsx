@@ -3,7 +3,7 @@ import { columns } from "./columns"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { createClient } from '@/utils/supabase/client';
+import { createClient } from '@/utils/supabase/server';
 import { PostgrestResponse } from "@supabase/supabase-js"
 import { Member } from "../types/member"
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
@@ -11,7 +11,7 @@ import { AppSidebar } from "@/components/app-sidebar"
 
 export default async function Page() {
   const supabase = await createClient();
-
+  
   const { data }:PostgrestResponse<Member> = await supabase
   .from("member_details_table")
   .select('*')
@@ -25,7 +25,7 @@ export default async function Page() {
       <AppSidebar />
       {/* <SidebarTrigger /> */}
       {/* <SidebarInset>       */}
-      <div className="container mx-auto px-4">      
+      <div className="container mx-auto px-4 py-10">      
         <Tabs defaultValue="Active">
           <div className="flex justify-between">
             <TabsList>
@@ -33,7 +33,7 @@ export default async function Page() {
               <TabsTrigger value="Pending">Pending</TabsTrigger>
             </TabsList>
             <Button variant="default">
-              <Plus/>Add Member
+              <Plus/>Add member
             </Button>
           </div>
           <TabsContent value="Active">

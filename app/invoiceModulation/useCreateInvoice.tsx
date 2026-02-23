@@ -4,20 +4,19 @@ import { InvoiceDetail } from "../types/invoiceDetail";
 
 const createInvoice = async (invoiceDetail: InvoiceDetail): Promise<boolean> => {
   const supabase = createClient();
-  console.log(typeof(invoiceDetail.subscriptiontype));
+  
   const { data, error } = await supabase.rpc("GenerateMemberInvoice", {
     startdate: toPostgresDate(invoiceDetail.StartDate),
     enddate: toPostgresDate(invoiceDetail.DueDate),
     subscriptiontype: invoiceDetail.subscriptiontype,
     memberids: invoiceDetail.MemberIds,
+    periodkey: invoiceDetail.PeriodKey,
   });
 
   if (error) {
     console.error("Supabase RPC error:", error);
     throw new Error(error.message);
   }
-
-  console.log("RPC result:", data);
   return data; // assuming function returns a boolean or status
 };
 

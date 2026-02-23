@@ -158,6 +158,16 @@ export function InvoiceMemberSelectTable({
   ) ?? []
 }, [members, memberSubscriptionTypeSelected])
 
+  useEffect(() => {
+  if (!filteredMembers.length) return
+
+  const allSelected = Object.fromEntries(
+    filteredMembers.map((_, index) => [index, true])
+  )
+
+  setRowSelection(allSelected)
+}, [filteredMembers])
+
   React.useEffect(() => {
     setMounted(true)
   }, [])

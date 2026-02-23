@@ -27,11 +27,13 @@ import {
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
+  useNameFilter?: boolean;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  useNameFilter = true,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -55,14 +57,14 @@ export function DataTable<TData, TValue>({
   return (
     <div>
       <div className="flex items-center pt-2 pb-4">
-        <Input
-          placeholder="Filter Given name..."
-          value={(table.getColumn("GivenName")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("GivenName")?.setFilterValue(event.target.value)
-          }
-          className="max-w-sm"
-        />
+        {useNameFilter && (<Input
+            placeholder="Filter Given name..."
+            value={(table.getColumn("GivenName")?.getFilterValue() as string) ?? ""}
+            onChange={(event) =>
+              table.getColumn("GivenName")?.setFilterValue(event.target.value)
+            }
+            className="max-w-sm"
+        />)}
       </div>
     <div className="w-full h-full overflow-auto rounded-md border">
       <Table>

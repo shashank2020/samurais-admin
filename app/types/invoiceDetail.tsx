@@ -6,8 +6,9 @@ export type InvoiceDetail = {
   StartDate: string;
   subscriptiontype: number;
   MemberSubscriptionType: string;
-  TermLabel: string;
   MemberIds: number[];
+  PublicUrl: string | null;
+  PeriodKey: string | null;
 };
 
 export type MemberInvoiceDetail = {

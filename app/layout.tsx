@@ -39,7 +39,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <Providers>            
-            <main className="flex items-center justify-center min-h-screen w-full pt-10">
+            <main className="flex flex-col justify-center min-h-screen w-full">
               {children}
             </main>
             <Toaster />

@@ -1,74 +1,74 @@
 import { NextResponse } from 'next/server'
 import { renderToStream } from '@react-pdf/renderer';
 import InvoicePDF from '@/components/pdf/InvoicePDF'
-import path from 'path'
-import fs from 'fs'
+import { createClient } from "@/utils/supabase/server";
+import { PostgrestResponse, PostgrestSingleResponse } from "@supabase/supabase-js"
+import { InvoiceDetail } from '@/app/types/invoiceDetail';
 
-// simulate invoice data
-const sampleInvoice = {
-  term: 'August',
-  date: '1/8/25',
-  subtotalDisplay: '$60 ($50)',
-  totalDisplay: '$60 ($50)',
-  bankAccount: '06-0606-0922974-00',
-  items: [
-    {
-      quantity: '1 x Monthly Membership',
-      description:
-        'Monthly Membership Subscription (August) (You can pay $50 if you can only make the 1 session per week, roughly 4 session per month)',
-      unitPrice: '$60 ($50)',
-    },
-  ],
+
+
+const streamToBuffer = async (stream: NodeJS.ReadableStream) => {
+  const chunks: Buffer[] = []
+
+  return new Promise<Buffer>((resolve, reject) => {
+    stream.on("data", (chunk) => chunks.push(Buffer.from(chunk)))
+    stream.on("end", () => resolve(Buffer.concat(chunks)))
+    stream.on("error", reject)
+  })
+}
+const bufferToArrayBuffer = (buffer: Buffer): ArrayBuffer => {
+  return buffer.buffer.slice(
+    buffer.byteOffset,
+    buffer.byteOffset + buffer.byteLength
+  ) as ArrayBuffer
 }
 
-const generatePDFFile = async (invoiceData: any) => {
-  const pdfStream = await renderToStream(InvoicePDF({ invoice: invoiceData }))    
-  const pdfPath = path.join(process.cwd(), 'public', 'invoices', `invoice_${Date.now()}.pdf`)
-  const writeStream = fs.createWriteStream(pdfPath)
+const bufferToFile = (buffer: Buffer, fileName: string) => {
+  const arrayBuffer = bufferToArrayBuffer(buffer)
 
-  return new Promise<string>((resolve, reject) => {
-    pdfStream.pipe(writeStream)
-    writeStream.on('finish', () => resolve(`/invoices/${path.basename(pdfPath)}`))
-    writeStream.on('error', reject)
+  return new File([arrayBuffer], fileName, {
+    type: "application/pdf",
   })
 }
 
-export async function GET() {
-  const pdfStream = await renderToStream(InvoicePDF({ invoice: sampleInvoice }))
+export const generateAndSaveInvoicePdfFileToSupabase = async (invoiceId: number) => {
+  const supabase = await createClient()
+  const pdfStream = await renderToStream(
+    await InvoicePDF({ invoiceId: invoiceId })
+  )
 
-  return new NextResponse(pdfStream as any, {
-    headers: {
-      'Content-Type': 'application/pdf',
-      'Content-Disposition': 'attachment; filename="invoice2.pdf"',
-    },
-  })
+  const pdfBuffer = await streamToBuffer(pdfStream)
+  const pdfFile = bufferToFile(
+    pdfBuffer,
+    `invoice_${invoiceId}.pdf`
+  )
+  const storagePath = `Invoices/${pdfFile.name}`
+
+  const { error } = await supabase.storage
+    .from("Samurais Files")
+    .upload(storagePath, pdfFile, {
+      contentType: "application/pdf",
+      upsert: true,
+    })
+
+  if (error) {console.error(error); throw error}
+
+  const { data } = supabase.storage
+    .from("Samurais Files")
+    .getPublicUrl(storagePath)
+    
+  return data.publicUrl
 }
 
 export async function POST(req: Request) {
   try {
-
-    // Sample invoice data
-    const sampleInvoice = {
-      term: 'August',
-      date: '1/8/25',
-      subtotalDisplay: '$60 ($50)',
-      totalDisplay: '$60 ($50)',
-      bankAccount: '06-0606-0922974-00',
-      items: [
-        {
-          quantity: '1 x Monthly Membership',
-          description:
-            'Monthly Membership Subscription (August) (You can pay $50 if you can only make the 1 session per week, roughly 4 session per month)',
-          unitPrice: '$60 ($50)',
-        },
-      ],
-    }
+    const {InvoiceId} = await req.json()   
 
     // Generate the PDF and save it to a file
-    const pdfUrl = await generatePDFFile(sampleInvoice)
+    const pdfUrl = await generateAndSaveInvoicePdfFileToSupabase(InvoiceId)
 
     // Create a preview URL
-    const previewUrl = `${process.env.NEXT_PUBLIC_SITE_URL}${pdfUrl}`
+    const previewUrl = pdfUrl
 
     // Return URLs to frontend
     return NextResponse.json({ pdfUrl, previewUrl })

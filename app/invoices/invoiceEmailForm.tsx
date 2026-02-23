@@ -18,19 +18,16 @@ import { useRouter } from 'next/navigation';
 type EmailProps = {
   members: Member[],
   invoiceId: number,
+  publicUrl?: string
 };
 
-export default function InvoiceEmailForm({ members, invoiceId }: EmailProps) {
+export default function InvoiceEmailForm({ members, invoiceId, publicUrl }: EmailProps) {
   const [generatingDocument, setGeneratingDocument] = useState(false)
   const [sendingEmail, setSendingEmail] = useState(false)
   const [emailRecipients, setEmailRecipients] = useState<string[]>([])
-
-
-  const [pdfUrl, setPdfUrl] = useState('')
-  const [previewUrl, setPreviewUrl] = useState('')
+  const [pdfUrl, setPdfUrl] = useState(publicUrl || '')
   const [error, setError] = useState('')
   const [open, setOpen] = useState(false);
-
   const router = useRouter();
   const formSchema = z.object({    
     emailSubject: z.string().nonempty("Email subject cannot be empty"),
@@ -39,7 +36,6 @@ export default function InvoiceEmailForm({ members, invoiceId }: EmailProps) {
 
   const {
         mutate: updateInvoiceNotifyStatus,
-        isPending: isUpdating,
       } = useUpdateInvoiceNotifyStatus();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -50,30 +46,25 @@ export default function InvoiceEmailForm({ members, invoiceId }: EmailProps) {
       },
     });
 
-  // Handle the form submission to trigger PDF generation
   const handleGenerateDocument = async (values: z.infer<typeof formSchema>) => {
     setGeneratingDocument(true)
     setError('')
     setPdfUrl('')
 
     try {
-      // Send request to generate the document and get the PDF URL
       const response = await fetch('/api/invoice/download', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          emailSubject: values.emailSubject,
-          emailBody: values.emailBody,
-          recipient: emailRecipients,
+          InvoiceId: invoiceId,
         }),
       })
 
       if (response.ok) {
-        const data = await response.json()
-        setPdfUrl(data.pdfUrl) // Set the generated PDF URL for preview
-        setPreviewUrl(data.previewUrl) // URL to open the document in a new tab
+        const data = await response.json()        
+        setPdfUrl(data.pdfUrl)
       } else {
         throw new Error('Error generating PDF')
       }
@@ -105,7 +96,7 @@ export default function InvoiceEmailForm({ members, invoiceId }: EmailProps) {
           subject: values.emailSubject,
           body: values.emailBody,
           recipient: emailRecipients,
-          pdfUrl,
+          pdfUrl: `Invoices/invoice_${invoiceId}.pdf`,
         }),
       })
 
@@ -131,11 +122,9 @@ export default function InvoiceEmailForm({ members, invoiceId }: EmailProps) {
   const handleDialogChange = (isOpen: boolean) => {
     setOpen(isOpen);
     if (!isOpen) {
-      form.reset(); // Reset form when dialog closes
-      setPdfUrl(''); // Clear PDF URL
-      setPreviewUrl(''); // Clear preview URL
-      setEmailRecipients([]); // Clear selected recipients
-      setGeneratingDocument(false); // Reset generating state
+      form.reset();
+      setEmailRecipients([]);
+      setGeneratingDocument(false);
       router.refresh();
     }
   };
@@ -144,14 +133,14 @@ export default function InvoiceEmailForm({ members, invoiceId }: EmailProps) {
     <Dialog open={open} onOpenChange={handleDialogChange}>
       <DialogTrigger asChild>
         <Button size="sm" variant="secondary">
-            Send Invoice <Send />
+            Send invoice <Send />
         </Button>
       </DialogTrigger>
 
       <DialogContent className="max-w-fit" onInteractOutside={(e) => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle>Send Invoice Email</DialogTitle>
-          <DialogDescription>Email Details</DialogDescription>
+          <DialogTitle>Send invoice email</DialogTitle>
+          <DialogDescription>Email details</DialogDescription>
         </DialogHeader>
 
         <div className="items-center space-x-2">
@@ -160,7 +149,7 @@ export default function InvoiceEmailForm({ members, invoiceId }: EmailProps) {
                     
                     <FormField control={form.control} name="emailSubject" render={({ field }) => (
                     <FormItem>
-                    <FormLabel>Email Subject</FormLabel>
+                    <FormLabel>Email subject</FormLabel>
                     <FormControl>
                         <Input  placeholder="Email Subject" {...field} className="w-full" />
                     </FormControl>
@@ -170,7 +159,7 @@ export default function InvoiceEmailForm({ members, invoiceId }: EmailProps) {
 
                     <FormField control={form.control} name="emailBody" render={({ field }) => (
                     <FormItem>
-                    <FormLabel>Email Body</FormLabel>
+                    <FormLabel>Email body</FormLabel>
                     <FormControl>
                         <Textarea placeholder="Email Body" {...field} className="w-full" />
                     </FormControl>
@@ -179,21 +168,25 @@ export default function InvoiceEmailForm({ members, invoiceId }: EmailProps) {
                     )} />
                     <InvoiceMemberRecipientTable members={members} onSelectionChange={setEmailRecipients} />
                     {generatingDocument || sendingEmail ? (
-                        (generatingDocument && <div className="loading">Generating Document...</div>)
-                        || (sendingEmail && <div className="loading">Sending Email...</div>)
+                        (generatingDocument && <div className="loading">Generating invoice...</div>)
+                        || (sendingEmail && <div className="loading">Sending email...</div>)
                     ) : (
                     <>
                         {!pdfUrl && <Button name="generateInvoice" type="button" onClick={form.handleSubmit(handleGenerateDocument)}>
-                          Generate Invoice
+                          Generate invoice
                         </Button>}
                         {pdfUrl && (
                         <div className="align-items-right">
                             <div className="flex gap-2">
-                                <Button name="previewInvoice" type="button" onClick={() => window.open(previewUrl, '_blank')}>
-                                    Preview Document
+                                <Button
+                                    name="previewInvoice"
+                                    type="button"
+                                    onClick={() => { window.open(pdfUrl, "_blank", "noopener,noreferrer")}}
+                                  >
+                                    Preview invoice
                                 </Button>
                                 <Button type="submit" name="sendEmail">
-                                    Send Email
+                                    Send email
                                 </Button>
                             </div>
                         </div>
