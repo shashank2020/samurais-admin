@@ -44,6 +44,10 @@ const items = [
     url: "/invoices",
   },
   {
+    title: "Finance",
+    url: "/finance",
+  },
+  {
     title: "Club Settings",
     url: "/settings",
   },
