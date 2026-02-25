@@ -4,10 +4,10 @@ import { InvoiceDetail } from "../types/invoiceDetail";
 
 const createInvoice = async (invoiceDetail: InvoiceDetail): Promise<boolean> => {
   const supabase = createClient();
-  
+
   const { data, error } = await supabase.rpc("GenerateMemberInvoice", {
-    startdate: toPostgresDate(invoiceDetail.StartDate),
-    enddate: toPostgresDate(invoiceDetail.DueDate),
+    startdate: invoiceDetail.StartDate,
+    enddate: invoiceDetail.DueDate,
     subscriptiontype: invoiceDetail.subscriptiontype,
     memberids: invoiceDetail.MemberIds,
     periodkey: invoiceDetail.PeriodKey,
@@ -20,9 +20,6 @@ const createInvoice = async (invoiceDetail: InvoiceDetail): Promise<boolean> => 
   return data; // assuming function returns a boolean or status
 };
 
-function toPostgresDate(date: string): string {
-  return date.split("T")[0]; // "YYYY-MM-DD"
-}
 
 
 export function useCreateInvoice() {

@@ -165,10 +165,10 @@ useEffect(() => {
   memberSubscriptionTypes.Casual
     ? formatDate(startDate)
     : selectedPeriodKey;
-
     const invoiceData: InvoiceDetail = {
       subscriptiontype: values.subscriptionType + 1,
-      StartDate: startDate.toISOString(),
+      StartDate: subscriptionType ===
+  memberSubscriptionTypes.Casual ? startDate.toDateString() : new Date().toDateString(), // for casual use the session date, for others use current date as placeholder
       DueDate: endDate.toISOString(),
       MemberIds: selectedMemberIds,
       InvoiceId: 0,

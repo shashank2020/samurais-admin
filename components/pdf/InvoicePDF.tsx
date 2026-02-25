@@ -45,6 +45,8 @@ export const InvoicePDF = async ({ invoiceId }: { invoiceId: number }) => {
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
   }
+
+  console.log('Invoice Data:', invoiceData?.StartDate);
   const term = periodKeyToTermText(invoiceData?.PeriodKey || '', subscriptionTypeFromString(invoiceData?.MemberSubscriptionType || ''), invoiceData?.StartDate ? new Date(invoiceData.StartDate) : undefined)
   // Sample invoice data
   const InvoicePdfData = {

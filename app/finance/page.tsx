@@ -1,6 +1,6 @@
 import { AppSidebar } from "@/components/app-sidebar";
 import MonthlyOverview from "./monthlyOverview";
-import SummaryOfEvents from "./SummaryOfEvents";
+import SummaryOfEvents from "./summaryOfEvents";
 import YearSelect from "./yearSelect";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import AddExpense from "./addExpense";

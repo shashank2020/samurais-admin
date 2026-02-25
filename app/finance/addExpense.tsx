@@ -123,7 +123,7 @@ export default function AddExpense() {
                 <FormControl>
                     <DatePickerInsideDialog
                     value={field.value ? new Date(field.value) : new Date()}
-                    onChange={(date) => field.onChange(date.toISOString().split("T")[0])}
+                    onChange={(date) => field.onChange(date.toDateString())}
                     />
                 </FormControl>
                 <FormMessage />

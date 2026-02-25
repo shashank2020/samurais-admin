@@ -75,11 +75,18 @@ export function CasualMembershipPaymentGrid({
     })
   }
 
-  const sortedInvoices = [...localInvoices].sort(
-    (a, b) =>
-      new Date(b.periodKey).getTime() -
-      new Date(a.periodKey).getTime()
-  )
+  const sortedInvoices = [...localInvoices].sort((a, b) => {
+  const aAllPaid = a.members.every((m) => m.isPaid);
+  const bAllPaid = b.members.every((m) => m.isPaid);
+
+  // If one is fully paid and the other isn't, push fully paid to bottom
+  if (aAllPaid !== bAllPaid) {
+    return aAllPaid ? 1 : -1;
+  }
+
+  // Otherwise sort by date (earliest → latest)
+  return a.periodKey.localeCompare(b.periodKey);
+});
 
   return (
     <Card className="w-full hover:bg-transparent">
@@ -122,7 +129,7 @@ export function CasualMembershipPaymentGrid({
           </td>
 
           <td className="px-4 py-3">
-            <Badge>
+            <Badge className={paidCount === memberCount ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}>
               {paidCount} / {memberCount} Paid
             </Badge>
           </td>
