@@ -76,7 +76,7 @@ export const columns: ColumnDef<Member>[] = [
     id: "ViewDetails",
     cell: ({ row }) => {
       return (
-        <MemberForm row={row.original}/>
+        <MemberForm mode="edit" row={row.original}/>
       )
     }
   },

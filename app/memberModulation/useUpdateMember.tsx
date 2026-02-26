@@ -3,6 +3,7 @@ import { createClient } from "@/utils/supabase/client";
 import { Member } from "../types/member";
 
 async function updateMember({ id, data }: { id: number; data: Partial<Member> }) {
+  debugger;
   const supabase = createClient();
   const { data: updatedData, error } = await supabase
     .from("member_details_table")
