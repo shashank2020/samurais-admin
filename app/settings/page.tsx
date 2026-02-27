@@ -52,7 +52,7 @@ export default function ClubSettingsPage() {
 
   // Update subscriptions
   const saveSubscriptions = async () => {
-    debugger;
+
     for (let sub of subscriptions) {
       await supabase.from("member_subscription_types").upsert(sub);
     }

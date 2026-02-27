@@ -3,7 +3,7 @@ import { createClient } from "@/utils/supabase/client";
 
 const updateInvoiceNotifyStatus = async (invoiceId: number, isNotified: boolean): Promise<boolean> => {
   const supabase = createClient();
-  debugger;
+
   const { data, error } = await supabase.rpc("updateinvoicenotifystatus", {
     invoiceid: invoiceId,
     isnotified: isNotified,
