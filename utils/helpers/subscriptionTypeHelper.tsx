@@ -7,7 +7,7 @@ import { memberSubscriptionTypes } from "@/app/types/enums/memberSubscriptionTyp
 export function subscriptionTypeFromString(
   typeStr: string | null
 ): memberSubscriptionTypes | null {
-  const normalized = typeStr.trim().toLowerCase();
+  const normalized = typeStr?.trim().toLowerCase();
 
   switch (normalized) {
     case "casual":
