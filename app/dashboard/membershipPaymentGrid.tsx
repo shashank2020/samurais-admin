@@ -28,6 +28,7 @@ import { useToast } from "@/hooks/use-toast"
 import { useMarkMemberInvoiceAsPaid } from "../invoiceModulation/useMarkMemberInvoiceAsPaid"
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { useMarkMemberInvoiceAsUnpaid } from "../invoiceModulation/useMarkMemberInvoiceAsUnpaid"
 
 type MembershipType = "monthly" | "semiannual" | "annual"
 type Status = "paid" | "unpaid" | "none"
@@ -54,6 +55,10 @@ export function MembershipPaymentGrid({ members }: Props) {
   const { toast } = useToast()
   const { mutate: markMemberPaid } =
     useMarkMemberInvoiceAsPaid()
+
+   const { mutate: markMemberUnpaid } =
+    useMarkMemberInvoiceAsUnpaid()
+
   const router = useRouter();
   // Local copy to immediately update grid cells
   const [localMembers, setLocalMembers] = React.useState<GridMember[]>(members)
@@ -152,6 +157,42 @@ export function MembershipPaymentGrid({ members }: Props) {
     })
   }
 
+  const handleMarkUnpaid = (
+  memberInvoiceId: number,
+  memberId: number,
+  periodKey: string
+) => {
+  markMemberUnpaid(memberInvoiceId, {
+    onSuccess: () => {
+      toast({
+        title: "Invoice marked as unpaid",
+      });
+
+      setLocalMembers((prev) =>
+        prev.map((m) => {
+          if (m.id !== memberId) return m;
+          return {
+            ...m,
+            payments: {
+              ...m.payments,
+              [periodKey]: { status: "unpaid", memberInvoiceId },
+            },
+          };
+        })
+      );
+
+      router.refresh();
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error?.message || "Something went wrong",
+      });
+    },
+  });
+};
+
   return (
     <Card className="w-full hover:bg-transparent">
       <CardHeader className="flex flex-row items-center justify-between">
@@ -248,16 +289,32 @@ export function MembershipPaymentGrid({ members }: Props) {
                 </div>
               </PopoverTrigger>
 
-              {paymentStatus !== "paid" && memberInvoiceId && (
+              {memberInvoiceId && (
                 <PopoverContent className="w-36 p-2">
-                  <Button
-                    size="sm"
-                    onClick={() =>
-                      handleMarkPaid(memberInvoiceId, member.id, periodKey!)
-                    }
-                  >
-                    Mark as Paid
-                  </Button>
+
+                  {paymentStatus === "unpaid" && (
+                    <Button
+                      size="sm"
+                      onClick={() =>
+                        handleMarkPaid(memberInvoiceId, member.id, periodKey!)
+                      }
+                    >
+                      Mark as Paid
+                    </Button>
+                  )}
+
+                  {paymentStatus === "paid" && (
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() =>
+                        handleMarkUnpaid(memberInvoiceId, member.id, periodKey!)
+                      }
+                    >
+                      Mark as Unpaid
+                    </Button>
+                  )}
+
                 </PopoverContent>
               )}
             </Popover>

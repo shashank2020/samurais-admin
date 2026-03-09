@@ -2,6 +2,8 @@
 import { createClient } from "@/utils/supabase/server";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import ExpenseRowActions from "./expenseRowActions";
+import IncomeRowActions from "./incomeRowActions";
 
 export default async function SummaryOfEvents({ year }: { year: number }) {
   const supabase = await createClient();
@@ -26,7 +28,7 @@ export default async function SummaryOfEvents({ year }: { year: number }) {
 
   const { data: expenseEvents } = await supabase
     .from("club_expenses")
-    .select("ExpenseDate, Title, Amount")
+    .select("ExpenseId, ExpenseDate, Title, Amount")
     .gte("ExpenseDate", startDate)
     .lte("ExpenseDate", endDate);
 
@@ -35,6 +37,7 @@ export default async function SummaryOfEvents({ year }: { year: number }) {
       const member = members?.find(m => m.Id === invoice.MemberId);
       const inv = invoices?.find(i => i.InvoiceId === invoice.InvoiceId);
       return {
+        id: invoice.MemberInvoiceId,
         date: invoice.DatePaid,
         description: `Membership (${inv?.MemberSubscriptionType || "N/A"} - ${inv?.PeriodKey || "N/A"}) - ${member?.GivenName || ""}`,
         amount: Number(invoice.Amount) || 0,
@@ -42,10 +45,11 @@ export default async function SummaryOfEvents({ year }: { year: number }) {
       };
     }),
     ...(expenseEvents || []).map(e => ({
-      date: e.ExpenseDate,
-      description: e.Title || "",
-      amount: Number(e.Amount) || 0,
-      type: "expense",
+        id: e.ExpenseId,
+        date: e.ExpenseDate,
+        description: e.Title || "",
+        amount: Number(e.Amount) || 0,
+        type: "expense",
     })),
   ].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
@@ -64,6 +68,20 @@ export default async function SummaryOfEvents({ year }: { year: number }) {
                   <td className="px-4 py-2">{e.description}</td>
                   <td className={`px-4 py-2 text-right ${e.type === "income" ? "text-green-600" : "text-red-600"}`}>
                     {e.type === "income" ? "+" : "-"}${e.amount.toFixed(2)}
+                  </td>
+                  <td className="px-2 py-2 text-right">
+                    {e.type === "expense" && (
+                        <ExpenseRowActions expenseId={e.id} />
+                        )}
+
+                        {e.type === "income" && (
+                        <IncomeRowActions
+                            memberInvoiceId={e.id}
+                            date={e.date}
+                            description={e.description}
+                            amount={e.amount}
+                        />
+                        )}
                   </td>
                 </tr>
               ))}
