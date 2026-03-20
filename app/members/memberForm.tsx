@@ -31,6 +31,10 @@ import { useUpdateMember } from "../memberModulation/useUpdateMember";
 import { useAddMember } from "../memberModulation/useAddMember";
 
 import { useEffect, useState } from "react";
+import { createClient } from "@/utils/supabase/client";
+import { Checkbox } from "@/components/ui/checkbox";
+
+const supabase = createClient();
 
 const formSchema = z.object({
   givenName: z.string().nonempty("Given name cannot be empty"),
@@ -48,6 +52,7 @@ const formSchema = z.object({
   memberStatusType: z.string().optional(),
   guardianName: z.string().optional(),
   guardianEmail: z.string().optional(),
+  includeInInvoice: z.boolean().optional(),
 });
 
 type MemberFormProps = {
@@ -56,10 +61,35 @@ type MemberFormProps = {
   trigger?: React.ReactNode;
 };
 
+function getPeriodKey(type: string) {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1; // 1–12
+
+  if (type === "Monthly") {
+    return `${year}-${String(month).padStart(2, "0")}`;
+  }
+
+  if (type === "SemiAnnual") {
+    // H1: Jan–Jun, H2: Jul–Dec
+    const half = month <= 6 ? "H1" : "H2";
+    return `${year}-${half}`;
+  }
+
+  if (type === "Annual") {
+    return `${year}`;
+  }
+
+  return "";
+}
+
 export default function MemberForm({ row, mode, trigger }: MemberFormProps) {
   const { toast } = useToast();
   const router = useRouter();
   const [open, setOpen] = useState(false);
+
+  const [currentInvoice, setCurrentInvoice] = useState<any | null>(null);
+  const [alreadyInInvoice, setAlreadyInInvoice] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -79,6 +109,7 @@ export default function MemberForm({ row, mode, trigger }: MemberFormProps) {
       memberStatusType: "",
       guardianName: "",
       guardianEmail: "",
+      includeInInvoice: false,
     },
   });
 
@@ -100,11 +131,53 @@ export default function MemberForm({ row, mode, trigger }: MemberFormProps) {
         memberStatusType: MemberStatus[row.Status],
         guardianName: row.GuardianName ?? "",
         guardianEmail: row.GuardianEmailAddress ?? "",
+        includeInInvoice: false,
       });
     } else {
       form.reset();
     }
   }, [row, form]);
+
+  // 🔥 Fetch invoice
+  useEffect(() => {
+    if (!open) return;
+
+    const fetchInvoice = async () => {
+      const membershipType = form.getValues("membershipType");
+      if (!membershipType) return;
+
+      const periodKey = getPeriodKey(membershipType);
+
+      const { data, error } = await supabase
+        .from("invoices")
+        .select("*")
+        .eq("MemberSubscriptionType", membershipType)
+        .eq("PeriodKey", periodKey)
+        .maybeSingle();
+
+      if (error) {
+        console.error(error);
+        setCurrentInvoice(null);
+        return;
+      }
+
+      setCurrentInvoice(data ?? null);
+
+      // check if already in invoice
+      if (data && row) {
+        const { data: existing } = await supabase
+          .from("member_invoice_details")
+          .select("MemberInvoiceId")
+          .eq("MemberId", row.Id)
+          .eq("InvoiceId", data.InvoiceId)
+          .maybeSingle();
+
+        setAlreadyInInvoice(!!existing);
+      }
+    };
+
+    fetchInvoice();
+  }, [open, form.watch("membershipType")]);
 
   const { mutate: activateMember, isPending: isActivating } = useActivateMember();
   const { mutate: updateMember, isPending: isUpdating } = useUpdateMember();
@@ -128,7 +201,9 @@ export default function MemberForm({ row, mode, trigger }: MemberFormProps) {
       MembershipType: values.membershipType,
       GuardianName: values.guardianName,
       GuardianEmailAddress: values.guardianEmail,
-      Status: MemberStatus[values.memberStatusType as keyof typeof MemberStatus] ?? MemberStatus.Active,
+      Status:
+        MemberStatus[values.memberStatusType as keyof typeof MemberStatus] ??
+        MemberStatus.Active,
     };
 
     if (mode === "add") {
@@ -142,14 +217,23 @@ export default function MemberForm({ row, mode, trigger }: MemberFormProps) {
       return;
     }
 
+    // ACTIVATION FLOW
     if (row?.Status === MemberStatus.Pending) {
-      activateMember(row.Id, {
-        onSuccess: () => {
-          toast({ title: "Member Activated" });
-          setOpen(false);
-          router.refresh();
+      activateMember(
+        {
+          id: row.Id,
+          data: payload,
+          includeInInvoice: values.includeInInvoice,
+          invoiceId: currentInvoice?.InvoiceId,
         },
-      });
+        {
+          onSuccess: () => {
+            toast({ title: "Member Activated" });
+            setOpen(false);
+            router.refresh();
+          },
+        }
+      );
       return;
     }
 
@@ -197,7 +281,7 @@ export default function MemberForm({ row, mode, trigger }: MemberFormProps) {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
 
             <div>
-            <div className="flex gap-x-4">
+              <div className="flex gap-x-4">
               <FormField control={form.control} name="givenName" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Given Name</FormLabel>
@@ -389,6 +473,36 @@ export default function MemberForm({ row, mode, trigger }: MemberFormProps) {
               )} /> )}    
             </div>
             </div>
+
+            {/* 🔥 Invoice Section */}
+            {row?.Status === MemberStatus.Pending && (
+              <div className="space-y-2">
+                {currentInvoice ? (
+                  <FormField
+                    control={form.control}
+                    name="includeInInvoice"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center space-x-2 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value || false}
+                            onCheckedChange={(checked) => field.onChange(checked === true)}
+                            disabled={alreadyInInvoice}
+                          />
+                        </FormControl>
+                        <FormLabel className="m-0 cursor-pointer">
+                          Include in {form.getValues("membershipType")} invoice ({currentInvoice.PeriodKey})
+                        </FormLabel>
+                      </FormItem>
+                    )}
+                  />
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    No current invoice exists for this membership type
+                  </p>
+                )}
+              </div>
+            )}
 
             <Button type="submit" disabled={loading}>
               {loading
