@@ -41,6 +41,7 @@
     "react-day-picker": "^9.7.0",
     "react-dom": "19.0.0",
     "react-hook-form": "^7.56.1",
+    "xlsx": "^0.18.5",
     "zod": "^3.24.3"
   },
   "devDependencies": {
