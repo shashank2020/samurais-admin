@@ -14,8 +14,17 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
+
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
@@ -30,17 +39,18 @@ import { zodResolver } from "@hookform/resolvers/zod";
 const formSchema = z.object({
   title: z.string().nonempty("Title is required"),
   amount: z.string().nonempty("Amount is required"),
-  expenseDate: z.string().nonempty("Date is required"),
+  transactionDate: z.string().nonempty("Date is required"),
   category: z.string().optional(),
   notes: z.string().optional(),
+  type: z.enum(["expense", "income"]),
 });
 
-type ExpenseFormValues = z.infer<typeof formSchema>;
+type TransactionFormValues = z.infer<typeof formSchema>;
 
-export default function UpdateExpense({
-  expenseId,
+export default function UpdateTransaction({
+  transactionId,
 }: {
-  expenseId: number;
+  transactionId: number;
 }) {
   const supabase = createClient();
   const router = useRouter();
@@ -49,76 +59,87 @@ export default function UpdateExpense({
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const form = useForm<ExpenseFormValues>({
+  const form = useForm<TransactionFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
       amount: "",
-      expenseDate: "",
+      transactionDate: "",
       category: "",
       notes: "",
+      type: "expense",
     },
   });
 
-  // Fetch expense when dialog opens
   useEffect(() => {
-    const fetchExpense = async () => {
+    const fetchTransaction = async () => {
       if (!open) return;
 
       setLoading(true);
 
       const { data, error } = await supabase
-        .from("club_expenses")
+        .from("club_transactions")
         .select("*")
-        .eq("ExpenseId", expenseId)
+        .eq("TransactionId", transactionId)
         .single();
 
       if (error) {
         toast({
           variant: "destructive",
-          title: "Error loading expense",
+          title: "Error loading transaction",
           description: error.message,
         });
         return;
       }
 
+      const amount = Number(data.Amount);
+
       form.reset({
         title: data.Title ?? "",
-        amount: String(data.Amount ?? ""),
-        expenseDate: data.ExpenseDate,
+        amount: String(Math.abs(amount)),
+        transactionDate: data.TransactionDate,
         category: data.Category ?? "",
         notes: data.Notes ?? "",
+        type: amount >= 0 ? "income" : "expense",
       });
 
       setLoading(false);
     };
 
-    fetchExpense();
+    fetchTransaction();
   }, [open]);
 
-  const onSubmit = async (values: ExpenseFormValues) => {
+  const onSubmit = async (values: TransactionFormValues) => {
+    const rawAmount = parseFloat(values.amount);
+
+    const finalAmount =
+      values.type === "expense"
+        ? -Math.abs(rawAmount)
+        : Math.abs(rawAmount);
+
     const { error } = await supabase
-      .from("club_expenses")
+      .from("club_transactions")
       .update({
         Title: values.title,
-        Amount: parseFloat(values.amount),
-        ExpenseDate: values.expenseDate,
+        Amount: finalAmount,
+        TransactionDate: values.transactionDate,
         Category: values.category || null,
         Notes: values.notes || null,
+        Type: values.type,
       })
-      .eq("ExpenseId", expenseId);
+      .eq("TransactionId", transactionId);
 
     if (error) {
       toast({
         variant: "destructive",
-        title: "Error updating expense",
+        title: "Error updating transaction",
         description: error.message,
       });
       return;
     }
 
     toast({
-      title: "Expense updated",
+      title: "Transaction updated",
     });
 
     setOpen(false);
@@ -135,8 +156,10 @@ export default function UpdateExpense({
 
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Edit Club Expense</DialogTitle>
-          <DialogDescription>Update the expense details.</DialogDescription>
+          <DialogTitle>Edit Transaction</DialogTitle>
+          <DialogDescription>
+            Update the transaction details.
+          </DialogDescription>
         </DialogHeader>
 
         {loading ? (
@@ -145,6 +168,27 @@ export default function UpdateExpense({
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
 
+              {/* TYPE */}
+              <FormField
+                control={form.control}
+                name="type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Type</FormLabel>
+                    <FormControl>
+                      <Tabs value={field.value} onValueChange={field.onChange}>
+                        <TabsList className="grid grid-cols-2">
+                          <TabsTrigger value="expense">Expense</TabsTrigger>
+                          <TabsTrigger value="income">Income</TabsTrigger>
+                        </TabsList>
+                      </Tabs>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* TITLE */}
               <FormField
                 control={form.control}
                 name="title"
@@ -152,13 +196,14 @@ export default function UpdateExpense({
                   <FormItem>
                     <FormLabel>Title</FormLabel>
                     <FormControl>
-                      <Input placeholder="Expense title" {...field} />
+                      <Input placeholder="Transaction title" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
+              {/* AMOUNT */}
               <FormField
                 control={form.control}
                 name="amount"
@@ -166,16 +211,17 @@ export default function UpdateExpense({
                   <FormItem>
                     <FormLabel>Amount</FormLabel>
                     <FormControl>
-                      <Input type="number" step="0.01" placeholder="Amount" {...field} />
+                      <Input type="number" step="0.01" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
+              {/* DATE */}
               <FormField
                 control={form.control}
-                name="expenseDate"
+                name="transactionDate"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Date</FormLabel>
@@ -192,6 +238,7 @@ export default function UpdateExpense({
                 )}
               />
 
+              {/* CATEGORY */}
               <FormField
                 control={form.control}
                 name="category"
@@ -199,13 +246,14 @@ export default function UpdateExpense({
                   <FormItem>
                     <FormLabel>Category</FormLabel>
                     <FormControl>
-                      <Input placeholder="Category (optional)" {...field} />
+                      <Input {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
+              {/* NOTES */}
               <FormField
                 control={form.control}
                 name="notes"
@@ -213,7 +261,7 @@ export default function UpdateExpense({
                   <FormItem>
                     <FormLabel>Notes</FormLabel>
                     <FormControl>
-                      <Input placeholder="Notes (optional)" {...field} />
+                      <Input {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -221,7 +269,7 @@ export default function UpdateExpense({
               />
 
               <DialogFooter>
-                <Button type="submit">Update Expense</Button>
+                <Button type="submit">Update Transaction</Button>
               </DialogFooter>
 
             </form>

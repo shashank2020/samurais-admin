@@ -2,7 +2,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import ExpenseRowActions from "./expenseRowActions";
+import TransactionRowActions from "./transactionRowActions";
 import IncomeRowActions from "./incomeRowActions";
 
 export default async function SummaryOfEvents({ year }: { year: number }) {
@@ -26,32 +26,36 @@ export default async function SummaryOfEvents({ year }: { year: number }) {
     .from("invoices")
     .select("InvoiceId, MemberSubscriptionType, PeriodKey");
 
-  const { data: expenseEvents } = await supabase
-    .from("club_expenses")
-    .select("ExpenseId, ExpenseDate, Title, Amount")
-    .gte("ExpenseDate", startDate)
-    .lte("ExpenseDate", endDate);
+  const { data: transactionEvents } = await supabase
+    .from("club_transactions")
+    .select("TransactionId, TransactionDate, Title, Amount")
+    .gte("TransactionDate", startDate)
+    .lte("TransactionDate", endDate);
 
   const events = [
     ...(incomeInvoices || []).map(invoice => {
       const member = members?.find(m => m.Id === invoice.MemberId);
       const inv = invoices?.find(i => i.InvoiceId === invoice.InvoiceId);
+
       return {
         id: invoice.MemberInvoiceId,
         date: invoice.DatePaid,
         description: `Membership (${inv?.MemberSubscriptionType || "N/A"} - ${inv?.PeriodKey || "N/A"}) - ${member?.GivenName || ""}`,
         amount: Number(invoice.Amount) || 0,
         type: "income",
+        source: "invoice",
       };
     }),
-    ...(expenseEvents || []).map(e => ({
-        id: e.ExpenseId,
-        date: e.ExpenseDate,
-        description: e.Title || "",
-        amount: Number(e.Amount) || 0,
-        type: "expense",
+
+    ...(transactionEvents || []).map(t => ({
+      id: t.TransactionId,
+      date: t.TransactionDate,
+      description: t.Title || "",
+      amount: Math.abs(Number(t.Amount)) || 0,
+      type: Number(t.Amount) >= 0 ? "income" : "expense",
+      source: "transaction",
     })),
-  ].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    ].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   return (
     <Card className="w-full hover:bg-transparent">
@@ -70,11 +74,11 @@ export default async function SummaryOfEvents({ year }: { year: number }) {
                     {e.type === "income" ? "+" : "-"}${e.amount.toFixed(2)}
                   </td>
                   <td className="px-2 py-2 text-right">
-                    {e.type === "expense" && (
-                        <ExpenseRowActions expenseId={e.id} />
+                    {e.source === "transaction" && (
+                        <TransactionRowActions transactionId={e.id} />
                         )}
 
-                        {e.type === "income" && (
+                        {e.source === "invoice" && (
                         <IncomeRowActions
                             memberInvoiceId={e.id}
                             date={e.date}

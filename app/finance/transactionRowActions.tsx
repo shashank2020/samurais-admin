@@ -1,6 +1,6 @@
 "use client";
 
-import { Pencil, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import {
@@ -15,25 +15,25 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-import UpdateExpense from "./updateExpense";
+import UpdateTransaction from "./updateTransaction";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 
-export default function ExpenseRowActions({
-  expenseId
+export default function TransactionRowActions({
+  transactionId,
 }: {
-  expenseId: number
+  transactionId: number;
 }) {
   const supabase = createClient();
   const router = useRouter();
   const { toast } = useToast();
 
-  const deleteExpense = async () => {
+  const deleteTransaction = async () => {
     const { error } = await supabase
-      .from("club_expenses")
+      .from("club_transactions")
       .delete()
-      .eq("ExpenseId", expenseId);
+      .eq("TransactionId", transactionId);
 
     if (error) {
       toast({
@@ -45,7 +45,7 @@ export default function ExpenseRowActions({
     }
 
     toast({
-      title: "Expense deleted",
+      title: "Transaction deleted",
     });
 
     router.refresh();
@@ -53,7 +53,8 @@ export default function ExpenseRowActions({
 
   return (
     <div className="flex gap-2 justify-end">
-      <UpdateExpense expenseId={expenseId} />
+      <UpdateTransaction transactionId={transactionId} />
+
       <AlertDialog>
         <AlertDialogTrigger asChild>
           <Button variant="ghost" size="icon">
@@ -63,16 +64,16 @@ export default function ExpenseRowActions({
 
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Expense</AlertDialogTitle>
+            <AlertDialogTitle>Delete Transaction</AlertDialogTitle>
             <AlertDialogDescription>
               This action cannot be undone. This will permanently delete this
-              expense.
+              transaction.
             </AlertDialogDescription>
           </AlertDialogHeader>
 
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={deleteExpense}>
+            <AlertDialogAction onClick={deleteTransaction}>
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
