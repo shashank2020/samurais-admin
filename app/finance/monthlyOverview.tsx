@@ -35,11 +35,11 @@ export default async function MonthlyOverview({ year }: { year: number }) {
     .gte("DatePaid", startDate)
     .lte("DatePaid", endDate);
 
-  const { data: expenseRows } = await supabase
-    .from("club_expenses")
-    .select("Amount, ExpenseDate")
-    .gte("ExpenseDate", startDate)
-    .lte("ExpenseDate", endDate);
+  const { data: transactionRows } = await supabase
+  .from("club_transactions")
+  .select("Amount, TransactionDate")
+  .gte("TransactionDate", startDate)
+  .lte("TransactionDate", endDate);
 
   // Initialize months
   const months: MonthData[] = Array.from({ length: 12 }, (_, i) => ({
@@ -50,17 +50,23 @@ export default async function MonthlyOverview({ year }: { year: number }) {
     runningBalance: 0,
   }));
 
-  // Group Income
+  // Group Income (Invoices)
   incomeRows?.forEach(row => {
     if (!row.DatePaid) return;
     const monthIndex = new Date(row.DatePaid).getMonth();
     months[monthIndex].income += Number(row.Amount);
   });
 
-  // Group Expenses
-  expenseRows?.forEach(row => {
-    const monthIndex = new Date(row.ExpenseDate).getMonth();
-    months[monthIndex].expense += Number(row.Amount);
+  // Group Transactions (NEW)
+  transactionRows?.forEach(row => {
+    const monthIndex = new Date(row.TransactionDate).getMonth();
+    const amount = Number(row.Amount);
+
+    if (amount >= 0) {
+      months[monthIndex].income += amount;   // income
+    } else {
+      months[monthIndex].expense += Math.abs(amount); // expense
+    }
   });
 
   // Net + Running Balance

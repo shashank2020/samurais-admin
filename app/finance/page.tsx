@@ -3,7 +3,7 @@ import MonthlyOverview from "./monthlyOverview";
 import SummaryOfEvents from "./summaryOfEvents";
 import YearSelect from "./yearSelect";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import AddExpense from "./addExpense";
+import AddTransaction from "./addTransaction";
 import { FileSpreadsheet } from 'lucide-react';
 
 export default async function FinancePage({ searchParams }: { searchParams?: Promise<{ year?: string }> }) {
@@ -21,7 +21,7 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
           {/* Year select + Add Expense button */}
           <div className="flex items-center space-x-2">
             <YearSelect currentYear={selectedYear} />
-            <AddExpense/>
+            <AddTransaction/>
             <a
               href={`/api/Finances?year=${selectedYear}`}
               className="px-4 py-2 bg-green-600 text-white rounded-md"
