@@ -42,7 +42,7 @@ import { memberSubscriptionTypes } from "../types/enums/memberSubscriptionTypes"
 import { useEffect } from "react"
 
 type Props = {
-  memberSubscriptionTypeSelected: memberSubscriptionTypes,
+  memberSubscriptionTypeSelected: memberSubscriptionTypes | null,
   onSelectionChange: (memberIds: number[]) => void
 }
 
@@ -153,10 +153,18 @@ export function InvoiceMemberSelectTable({
   } = useMembers(1)
 
   const filteredMembers = React.useMemo(() => {
-  return members?.filter(
-    (member) => member.MembershipType === memberSubscriptionTypes[memberSubscriptionTypeSelected]
-  ) ?? []
-}, [members, memberSubscriptionTypeSelected])
+  if (!members) return [];
+
+  if (memberSubscriptionTypeSelected === null) {
+    return members;
+  }
+
+  return members.filter(
+    (member) =>
+      member.MembershipType ===
+      memberSubscriptionTypes[memberSubscriptionTypeSelected]
+  );
+}, [members, memberSubscriptionTypeSelected]);
 
   useEffect(() => {
   if (!filteredMembers.length) return
