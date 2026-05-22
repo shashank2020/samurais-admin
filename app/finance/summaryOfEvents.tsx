@@ -55,7 +55,7 @@ export default async function SummaryOfEvents({ year }: { year: number }) {
       type: Number(t.Amount) >= 0 ? "income" : "expense",
       source: "transaction",
     })),
-    ].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return (
     <Card className="w-full hover:bg-transparent">
