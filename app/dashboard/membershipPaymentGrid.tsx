@@ -116,7 +116,7 @@ export function MembershipPaymentGrid({ members }: Props) {
   // Filter members by subscription type
   useEffect(() => {
   setFilteredMembers(
-    localMembers.filter((m) => m.subscriptionType?.toLowerCase() === type)
+    localMembers.filter((m) => m.subscriptionType?.toLowerCase() === type).sort((a, b) => a.name.localeCompare(b.name))
   )
 }, [localMembers, type])
 
